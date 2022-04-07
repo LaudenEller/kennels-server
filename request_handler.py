@@ -1,10 +1,10 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import imp
 import json
-from views.animal_requests import get_all_animals, get_single_animal, create_animal
-from views.location_requests import get_all_locations, get_single_location
-from views.employee_requests import get_all_employees, get_single_employee
-from views.customers_requests import get_all_customers, get_single_customer
+from views.animal_requests import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
+from views.location_requests import get_all_locations, get_single_location, create_location, delete_location, update_location
+from views.employee_requests import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee
+from views.customers_requests import get_all_customers, get_single_customer, create_customer, delete_customer, update_customer
 
 
 # Here's a class. It inherits from another class.
@@ -30,6 +30,9 @@ class HandleRequests(BaseHTTPRequestHandler):
             # Convert the string "1" to the integer 1
             # This is the new parseInt()
             id = int(path_params[2])
+            
+            # WHAT IS GOING ON BELOW?
+            
         except IndexError:
             pass  # No route parameter exists: /animals
         except ValueError:
@@ -38,15 +41,22 @@ class HandleRequests(BaseHTTPRequestHandler):
         return (resource, id)  # This is a tuple
     
 
-    # Here's a class function
+    # Here's a class method
+    
+    # Is status an anonymous variable? Or a particular thing???
+    
     def _set_headers(self, status):
-        # Notice this Docstring also includes information about the arguments passed to the function
+        # Notice this Docstring also includes information about the arguments passed to the function - WHAT READS THIS CODE?
+            
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
         headers on the response
 
         Args:
             status (number): the status code to return to the front end
         """
+        
+        # ARE THESE PREDEFINED METHODS(?)? - GETS METHODS FROM INHERITED CLASS
+        
         self.send_response(status)
         self.send_header("Content-type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -67,11 +77,13 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It handles any GET request.
    
     def do_GET(self):
+        
+        # HOW IS THE METHODS _SET_HEADERS_ GETTING USED ON THIS LINE?
         self._set_headers(200)
         response = {}  # Default response
 
         # Parse the URL and capture the tuple that is returned
-        (resource, id) = self.parse_url(self.path)
+        (resource, id) = self.parse_url(self.path) # DOES PATH COME FROM POSTMAN?
 
         if resource == "animals":
             if id is not None:
@@ -101,34 +113,15 @@ class HandleRequests(BaseHTTPRequestHandler):
             else:
                 response = f"{get_all_customers()}"
 
-        self.wfile.write(response.encode())
-   
-    # def do_GET(self):
-    #     """Handles GET requests to the server"""
-    #     # Set the response code to 'Ok'
-    #     self._set_headers(200)
-
-    #     # Your new console.log() that outputs to the terminal
-    #     print(self.path)
-
-    #     # It's an if..else statement
-    #     if self.path == "/animals":
-    #         # In Python, this is a list of dictionaries
-    #         # In JavaScript, you would call it an array of objects
-    #         response = get_all_animals()
-    #     else:
-    #         response = []
-
-    #     # This weird code sends a response back to the client
-    #     self.wfile.write(f"{response}".encode())
+        self.wfile.write(response.encode()) #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any POST request.
     
     def do_POST(self):
         self._set_headers(201)
-        content_len = int(self.headers.get('content-length', 0))
-        post_body = self.rfile.read(content_len)
+        content_len = int(self.headers.get('content-length', 0)) # WHAT DOES THIS DO?
+        post_body = self.rfile.read(content_len) # WHAT DOES THIS DO?? - READ METHOD ON RFILE PROPETY OF INHERITED CLASS
 
         # Convert JSON string to a Python dictionary
         post_body = json.loads(post_body)
@@ -136,34 +129,65 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Initialize new animal
-        new_animal = None
-
-        # Add a new animal to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
+        # Initialize new dictionary
+        response = None
+        # Add a new resource to the list for each possible expected request
         if resource == "animals":
-            new_animal = create_animal(post_body)
-
-        # Encode the new animal and send in response
-        self.wfile.write(f"{new_animal}".encode())
-    
-    # def do_POST(self):
-    #     """Handles POST requests to the server"""
-    #     # Set response code to 'Created'
-    #     self._set_headers(201)
-
-    #     content_len = int(self.headers.get("content-length", 0))
-    #     post_body = self.rfile.read(content_len)
-    #     response = f"received post request:<br>{post_body}"
-    #     self.wfile.write(response.encode())
+            response = create_animal(post_body)
+        if resource == "customers":
+            response = create_customer(post_body)
+        if resource == "employees":
+            response = create_employee(post_body)
+        if resource == "locations":
+            response = create_location(post_body)
+            
+            # Encode the new animal and send in response
+        self.wfile.write(f"{response}".encode())
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any PUT request.
 
     def do_PUT(self):
-        """Handles PUT requests to the server"""
-        self.do_POST()
+        self._set_headers(204)
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
+
+        # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Delete a single animal from the list
+        if resource == "animals":
+            update_animal(id, post_body)
+        if resource == "employees":
+            update_employee(id, post_body)
+        if resource == "customers":
+            update_customer(id, post_body)
+        if resource == "locations":
+            update_location(id, post_body)
+
+        # Encode the new animal and send in response
+        self.wfile.write("".encode())
+
+    def do_DELETE(self):
+        # Set a 204 response code
+        self._set_headers(204)
+
+        # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Delete a single animal from the list
+        if resource == "animals":
+            delete_animal(id)
+        if resource == "customers":
+            delete_customer(id)
+        if resource == "employees":
+            delete_employee(id)
+        if resource == "locations":
+            delete_location(id)
+
+        # Encode the new animal and send in response
+        self.wfile.write("".encode())
 
 
 # This function is not inside the class. It is the starting
@@ -172,8 +196,9 @@ def main():
     """Starts the server on port 8088 using the HandleRequests class"""
     host = ""
     port = 8088
-    HTTPServer((host, port), HandleRequests).serve_forever()
+    HTTPServer((host, port), HandleRequests).serve_forever() # This is a new class that is getting HandleRequests class passed as one of the arguments
 
 
+# Does this invokes the main function because __name__ is __main__ somewhere else in my code?
 if __name__ == "__main__":
     main()
