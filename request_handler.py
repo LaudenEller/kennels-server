@@ -1,10 +1,10 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import imp
 import json
-from views.animal_requests import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
-from views.location_requests import get_all_locations, get_single_location, create_location, delete_location, update_location
-from views.employee_requests import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee
-from views.customers_requests import get_all_customers, get_single_customer, create_customer, delete_customer, update_customer
+from views.animal_requests import get_all_animals, get_single_animal # create_animal, delete_animal, update_animal
+from views.location_requests import get_all_locations, get_single_location # create_location, delete_location, update_location
+from views.employee_requests import get_all_employees, get_single_employee # create_employee, delete_employee, update_employee
+from views.customers_requests import get_all_customers, get_single_customer # create_customer, delete_customer, update_customer
 
 
 # Here's a class. It inherits from another class.
@@ -42,11 +42,8 @@ class HandleRequests(BaseHTTPRequestHandler):
     
 
     # Here's a class method
-    
-    # Is status an anonymous variable? Or a particular thing???
-    
     def _set_headers(self, status):
-        # Notice this Docstring also includes information about the arguments passed to the function - WHAT READS THIS CODE?
+        # Notice this Docstring also includes information about the arguments passed to the function
             
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
         headers on the response
@@ -78,12 +75,12 @@ class HandleRequests(BaseHTTPRequestHandler):
    
     def do_GET(self):
         
-        # HOW IS THE METHODS _SET_HEADERS_ GETTING USED ON THIS LINE?
+        # HOW IS THE METHODS _SET_HEADERS_ GETTING USED ON THIS LINE? - initial header code value
         self._set_headers(200)
-        response = {}  # Default response
+        response = {}  # Default response - initial response value
 
         # Parse the URL and capture the tuple that is returned
-        (resource, id) = self.parse_url(self.path) # DOES PATH COME FROM POSTMAN?
+        (resource, id) = self.parse_url(self.path) # DOES PATH COME FROM POSTMAN? - yes
 
         if resource == "animals":
             if id is not None:
