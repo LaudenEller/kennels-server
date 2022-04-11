@@ -1,10 +1,17 @@
+from curses import raw
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import imp
 import json
-from views.animal_requests import get_all_animals, get_single_animal # create_animal, delete_animal, update_animal
+from views.animal_requests import get_all_animals, get_single_animal, get_animal_by_location_id # create_animal, delete_animal, update_animal
 from views.location_requests import get_all_locations, get_single_location # create_location, delete_location, update_location
 from views.employee_requests import get_all_employees, get_single_employee # create_employee, delete_employee, update_employee
-from views.customers_requests import get_all_customers, get_single_customer # create_customer, delete_customer, update_customer
+from views.customers_requests import get_all_customers, get_single_customer, get_customers_by_email, get_customers_by_name # create_customer, delete_customer, update_customer
+
+
+
+# WHY DID MY TWO NEW LOCATION ROWS GET IDS 3 & 4 EVEN THOUGH I DELETED THE FIRST TWO ROWS BEFORE CREATING THE NEW ONES?
+# WHAT IS MY IMP IMPORT?
+
 
 
 # Here's a class. It inherits from another class.
@@ -16,6 +23,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It gives a description of the class or function
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server"""
     
+    
     def parse_url(self, path):
         # Just like splitting a string in JavaScript. If the
         # path is "/animals/1", the resulting list will
@@ -23,22 +31,48 @@ class HandleRequests(BaseHTTPRequestHandler):
         # at index 2.
         path_params = path.split("/")
         resource = path_params[1]
-        id = None
 
-        # Try to get the item at index 2
-        try:
+
+        #  DO I NEED TO ADD ANOTHER CONDITIONAL PARAMETER TO THE IF ON LINE 39? OR MAYBE A NESTED CONDITIONAL CHECKING RESOURCE CONTENT??
+
+
+        # Check if there is a query string parameter
+        if "?" in resource:
+            # GIVEN: /customers?email=jenna@solis.com
+
+            param = resource.split("?")[1]  # email=jenna@solis.com
+            resource = resource.split("?")[0]  # 'customers'
+            pair = param.split("=")  # [ 'email', 'jenna@solis.com' ]
+            key = pair[0]  # 'email'
+            raw_value = pair[1]  # 'jenna@solis.com'
+            
+            try:
+                raw_value = int(raw_value)
+            except IndexError:
+                pass  # No route parameter exists: /animals
+            except ValueError:
+                pass  # Request had trailing slash: /animals/
+
+    
+            return ( resource, key, raw_value ) # Tuple with a table name, a column name and a column value
+
+        # No query string parameter
+        else:
+            id = None
+    # Try to get the item at index 2
+            try:
             # Convert the string "1" to the integer 1
             # This is the new parseInt()
-            id = int(path_params[2])
-            
-            # WHAT IS GOING ON BELOW?
-            
-        except IndexError:
-            pass  # No route parameter exists: /animals
-        except ValueError:
-            pass  # Request had trailing slash: /animals/
+                id = int(path_params[2])
+                
+                # WHAT IS GOING ON BELOW?
+                
+            except IndexError:
+                pass  # No route parameter exists: /animals
+            except ValueError:
+                pass  # Request had trailing slash: /animals/
 
-        return (resource, id)  # This is a tuple
+            return (resource, id)   # This is a tuple
     
 
     # Here's a class method
@@ -74,43 +108,49 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It handles any GET request.
    
     def do_GET(self):
-        
         # HOW IS THE METHODS _SET_HEADERS_ GETTING USED ON THIS LINE? - initial header code value
         self._set_headers(200)
-        response = {}  # Default response - initial response value
 
-        # Parse the URL and capture the tuple that is returned
-        (resource, id) = self.parse_url(self.path) # DOES PATH COME FROM POSTMAN? - yes
+        response = {}       # Default response - initial response value
 
-        if resource == "animals":
-            if id is not None:
-                response = f"{get_single_animal(id)}"
+        # Parse URL and store entire tuple in a variable
+        parsed = self.parse_url(self.path)       # DOES PATH COME FROM POSTMAN? - yes
 
-            else:
-                response = f"{get_all_animals()}"
-        
-        if resource == "locations":
-            if id is not None:
-                response = f"{get_single_location(id)}"
-                
-            else:
-                response = f"{get_all_locations()}"
-       
-        if resource == "employees":
-            if id is not None:
-                response = f"{get_single_employee(id)}"
-                
-            else:
-                response = f"{get_all_employees()}"
-        
-        if resource == "customers":
-            if id is not None:
-                response = f"{get_single_customer(id)}"
-                
-            else:
-                response = f"{get_all_customers()}"
+        # Response from parse_url() is a tuple with 2
+        # items in it, which means the request was for
+        # `/animals` or `/animals/2`
+        if len(parsed) == 2:
+             # Parse the URL and capture the tuple that is returned
+            ( resource, id ) = parsed
 
-        self.wfile.write(response.encode()) #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES
+            if resource == "animals":
+                if id is not None:
+                    response = f"{get_single_animal(id)}"
+                else:
+                    response = f"{get_all_animals()}"
+            elif resource == "customers":
+                if id is not None:
+                    response = f"{get_single_customer(id)}"
+                else:
+                    response = f"{get_all_customers()}"
+
+        # Response from parse_url() is a tuple with 3
+        # items in it, which means the request was for
+        # `/resource?parameter=value`
+        elif len(parsed) == 3:
+            ( resource, key, value ) = parsed
+
+            # Is the resource `customers` and was there a
+            # query parameter that specified the customer
+            # email as a filtering value?
+            if key == "email" and resource == "customers":
+                response = f"{get_customers_by_email(value)}"
+            elif key == "name" and resource == "customers":
+                response = f"{get_customers_by_name(value)}"
+            elif key == "location_id" and resource == "animals":
+                response = f"{get_animal_by_location_id(value)}"
+
+        self.wfile.write(response.encode())     #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any POST request.

@@ -52,7 +52,7 @@ def get_single_employee(id):
             a.id,
             a.name,
             a.address,
-            a.location
+            a.location_id
         FROM employee a
         WHERE a.id = ?
         """, ( id, ))
@@ -61,7 +61,7 @@ def get_single_employee(id):
         data = db_cursor.fetchone()
 
         # Create an employee instance from the current row
-        employee = Employee(data['id'], data['name'], data['address'], data['email'], data['password'], data['location_id'])
+        employee = Employee(data['id'], data['name'], data['address'], data['location_id'])
 
         return json.dumps(employee.__dict__)
 

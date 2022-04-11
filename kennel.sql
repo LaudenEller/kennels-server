@@ -31,8 +31,8 @@ CREATE TABLE `Employee` (
 	FOREIGN KEY(`location_id`) REFERENCES `Location`(`id`)
 );
 
-INSERT INTO `Location` VALUES (null, 'Nashville North', "64 Washington Heights");
-INSERT INTO `Location` VALUES (null, 'Nashville South', "101 Penn Ave");
+INSERT INTO `Location` VALUES (null, "Nashville North", "64 Washington Heights");
+INSERT INTO `Location` VALUES (null, "Nashville South", "101 Penn Ave");
 
 
 INSERT INTO `Employee` VALUES (null, "Madi Peper", "35498 Madison Ave", 1);
@@ -67,3 +67,8 @@ FROM animal a
 WHERE a.id = 1
 
 SELECT * FROM animal;
+
+SELECT * FROM location;
+
+DELETE FROM location
+WHERE id == 3;

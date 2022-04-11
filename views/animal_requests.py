@@ -19,8 +19,8 @@ def get_all_animals():
             a.name,
             a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.customer_id,
+            a.location_id
         FROM animal a
         """)
 
@@ -39,8 +39,8 @@ def get_all_animals():
             # exact order of the parameters defined in the
             # Animal class above.
             animal = Animal(row['id'], row['name'], row['breed'],
-                            row['status'], row['location_id'],
-                            row['customer_id'])
+                            row['status'], row['customer_id'],
+                            row['location_id'])
 
             animals.append(animal.__dict__)
 
@@ -60,8 +60,8 @@ def get_single_animal(id):
             a.name,
             a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.customer_id,
+            a.location_id
         FROM animal a
         WHERE a.id = ?
         """, ( id, ))
@@ -71,11 +71,38 @@ def get_single_animal(id):
 
         # Create an animal instance from the current row
         animal = Animal(data['id'], data['name'], data['breed'],
-                            data['status'], data['location_id'],
-                            data['customer_id'])
+                            data['status'], data['customer_id'], 
+                            data['location_id'])
 
         return json.dumps(animal.__dict__)
-
+    
+    
+    # HOW CAN I TELL THE ALGO THAT LOCATION_ID IS A FOREIGN KEY, NOT A STRING SO THAT IT COMES IN AS AN INT???
+    
+def get_animal_by_location_id(location_id):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+    
+        db_cursor.execute("""
+            SELECT
+                a.id,
+                a.name,
+                a.breed,
+                a.status,
+                a.customer_id,
+                a.location_id
+            FROM animal a
+            WHERE a.location_id = ?
+            """, ( location_id, ))
+        
+        data = db_cursor.fetchall()
+        
+        for row in data:
+        
+            animal = Animal(row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
+        
+        return json.dumps(animal.__dict__)
 
 # ANIMALS = [
 #     {
