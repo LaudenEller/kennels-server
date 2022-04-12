@@ -55,6 +55,11 @@ INSERT INTO `Animal` VALUES (null, "Falafel", "Treatment", "Siamese", 4, 2);
 INSERT INTO `Animal` VALUES (null, "Doodles", "Kennel", "Poodle", 3, 1);
 INSERT INTO `Animal` VALUES (null, "Daps", "Kennel", "Boxer", 2, 2);
 
+SELECT * FROM animal;
+
+DELETE FROM location
+WHERE id == 3;
+
 -- Get only the animal rows where the `id` field value is 3
 SELECT
     a.id,
@@ -64,9 +69,21 @@ SELECT
     a.location_id,
     a.customer_id
 FROM animal a
-WHERE a.id = 1
+WHERE a.id = 3
 
-SELECT * FROM animal;
+SELECT
+    a.id,
+    a.name,
+    a.breed,
+    a.status,
+    a.location_id,
+    a.customer_id,
+    l.name location_name,
+    l.address location_address
+FROM Animal a
+JOIN Location l
+    ON l.id = a.location_id
 
-DELETE FROM location
-WHERE id == 3;
+UPDATE Animal
+SET location_id = 4
+WHERE location_id = 1
