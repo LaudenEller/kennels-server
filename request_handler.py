@@ -2,14 +2,13 @@ from curses import raw
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import imp
 import json
-from views.animal_requests import get_all_animals, get_single_animal, get_animal_by_location_id # create_animal, delete_animal, update_animal
+from views.animal_requests import get_all_animals, get_animal_by_status, get_single_animal, get_animal_by_location_id, delete_animal # create_animal, update_animal
 from views.location_requests import get_all_locations, get_single_location # create_location, delete_location, update_location
-from views.employee_requests import get_all_employees, get_single_employee # create_employee, delete_employee, update_employee
+from views.employee_requests import get_all_employees, get_single_employee, get_employee_by_location_id # create_employee, delete_employee, update_employee
 from views.customers_requests import get_all_customers, get_single_customer, get_customers_by_email, get_customers_by_name # create_customer, delete_customer, update_customer
 
 
 
-# WHY DID MY TWO NEW LOCATION ROWS GET IDS 3 & 4 EVEN THOUGH I DELETED THE FIRST TWO ROWS BEFORE CREATING THE NEW ONES?
 # WHAT IS MY IMP IMPORT?
 
 
@@ -32,10 +31,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         path_params = path.split("/")
         resource = path_params[1]
 
-
-        #  DO I NEED TO ADD ANOTHER CONDITIONAL PARAMETER TO THE IF ON LINE 39? OR MAYBE A NESTED CONDITIONAL CHECKING RESOURCE CONTENT??
-
-
         # Check if there is a query string parameter
         if "?" in resource:
             # GIVEN: /customers?email=jenna@solis.com
@@ -44,17 +39,17 @@ class HandleRequests(BaseHTTPRequestHandler):
             resource = resource.split("?")[0]  # 'customers'
             pair = param.split("=")  # [ 'email', 'jenna@solis.com' ]
             key = pair[0]  # 'email'
-            raw_value = pair[1]  # 'jenna@solis.com'
+            value = pair[1]  # 'jenna@solis.com'
             
             try:
-                raw_value = int(raw_value)
+                value = int(value)
             except IndexError:
                 pass  # No route parameter exists: /animals
             except ValueError:
                 pass  # Request had trailing slash: /animals/
 
     
-            return ( resource, key, raw_value ) # Tuple with a table name, a column name and a column value
+            return ( resource, key, value ) # Tuple with a table name, a column name and a column value
 
         # No query string parameter
         else:
@@ -133,6 +128,16 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = f"{get_single_customer(id)}"
                 else:
                     response = f"{get_all_customers()}"
+            elif resource == "employees":
+                if id is not None:
+                    response = f"{get_single_employee(id)}"
+                else:
+                    response = f"{get_all_employees()}"
+            elif resource == "locations":
+                if id is not None:
+                    response = f"{get_single_location(id)}"
+                else:
+                    response = f"{get_all_locations()}"
 
         # Response from parse_url() is a tuple with 3
         # items in it, which means the request was for
@@ -149,6 +154,10 @@ class HandleRequests(BaseHTTPRequestHandler):
                 response = f"{get_customers_by_name(value)}"
             elif key == "location_id" and resource == "animals":
                 response = f"{get_animal_by_location_id(value)}"
+            elif key == "status" and resource == "animals":
+                response = f"{get_animal_by_status(value)}"
+            elif key == "location_id" and resource == "employees":
+                response = f"{get_employee_by_location_id(value)}"
 
         self.wfile.write(response.encode())     #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES
 

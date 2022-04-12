@@ -18,8 +18,8 @@ def get_all_animals():
             a.id,
             a.name,
             a.breed,
-            a.status,
             a.customer_id,
+            a.status,
             a.location_id
         FROM animal a
         """)
@@ -39,7 +39,7 @@ def get_all_animals():
             # exact order of the parameters defined in the
             # Animal class above.
             animal = Animal(row['id'], row['name'], row['breed'],
-                            row['status'], row['customer_id'],
+                            row['customer_id'], row['status'],
                             row['location_id'])
 
             animals.append(animal.__dict__)
@@ -59,8 +59,8 @@ def get_single_animal(id):
             a.id,
             a.name,
             a.breed,
-            a.status,
             a.customer_id,
+            a.status,
             a.location_id
         FROM animal a
         WHERE a.id = ?
@@ -71,7 +71,7 @@ def get_single_animal(id):
 
         # Create an animal instance from the current row
         animal = Animal(data['id'], data['name'], data['breed'],
-                            data['status'], data['customer_id'], 
+                            data['customer_id'], data['status'],
                             data['location_id'])
 
         return json.dumps(animal.__dict__)
@@ -88,9 +88,9 @@ def get_animal_by_location_id(location_id):
             SELECT
                 a.id,
                 a.name,
-                a.breed,
-                a.status,
+                a.breed,            
                 a.customer_id,
+                a.status,
                 a.location_id
             FROM animal a
             WHERE a.location_id = ?
@@ -100,9 +100,47 @@ def get_animal_by_location_id(location_id):
         
         for row in data:
         
-            animal = Animal(row['id'], row['name'], row['breed'], row['status'], row['customer_id'], row['location_id'])
+            animal = Animal(row['id'], row['name'], row['breed'], row['customer_id'], row['status'], row['location_id'])
         
         return json.dumps(animal.__dict__)
+    
+def get_animal_by_status(string_variable):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+                
+        db_cursor.execute("""
+            SELECT
+                a.id,
+                a.name,
+                a.breed,            
+                a.customer_id,
+                a.status,
+                a.location_id
+            FROM animal a
+            WHERE a.status = ?
+            """, ( string_variable, ))
+        
+        animals = []
+        data = db_cursor.fetchall()
+        
+        for row in data:
+        
+            animal = Animal(row['id'], row['name'], row['breed'], row['customer_id'], row['status'], row['location_id'])
+        
+            animals.append(animal.__dict__)
+        
+        return json.dumps(animals)
+    
+def delete_animal(id):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM animal
+        WHERE id = ?
+        """, (id, ))
+
 
 # ANIMALS = [
 #     {

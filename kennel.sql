@@ -68,7 +68,5 @@ WHERE a.id = 1
 
 SELECT * FROM animal;
 
-SELECT * FROM location;
-
 DELETE FROM location
 WHERE id == 3;
