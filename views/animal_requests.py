@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import Animal, Location, Customer
+from models import Animal, Location
 
 def get_all_animals():
     # Open a connection to the database
@@ -28,7 +28,7 @@ def get_all_animals():
             ON l.id = a.location_id
             JOIN Customer c
             ON c.id = a.customer_id
-            """)
+                        """)
 
         # Initialize an empty list to hold all animal representations
         animals = []
@@ -45,12 +45,12 @@ def get_all_animals():
             # Create a Location instance from the current row
             location = Location(row['id'], row['location_name'], row['location_address'])
 
-            customer = Customer(row['id'], row['name'], row['address'], row['email'], row['password'])
+            # customer = Customer(row['id'], row['address'], row['name'], row['email'], row['password'])
 
             
             # Add the dictionary representation of the location to the animal
             animal.location = location.__dict__
-            animal.customer = customer.__dict__ 
+            # animal.customer = customer.__dict__ 
 
             # Add the dictionary representation of the animal to the list
             animals.append(animal.__dict__)
@@ -179,6 +179,32 @@ def update_animal(id, new_animal):
     else:
         # Forces 204 response by main module
         return True
+    
+def create_animal(new_animal):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Animal
+            ( name, status, breed, customer_id, location_id )
+        VALUES
+            ( ?, ?, ?, ?, ?);
+        """, (new_animal['name'], new_animal['status'],
+              new_animal['breed'], new_animal['customerId'],
+              new_animal['locationId'], ))
+
+        # The `lastrowid` property on the cursor will return
+        # the primary key of the last thing that got added to
+        # the database.
+        id = db_cursor.lastrowid
+
+        # Add the `id` property to the animal dictionary that
+        # was sent by the client so that the client sees the
+        # primary key in the response.
+        new_animal['id'] = id
+
+
+    return json.dumps(new_animal)
 
 
 # ANIMALS = [

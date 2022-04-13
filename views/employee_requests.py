@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import Employee
+from models import Employee, Location
 
 
 def get_all_employees():
@@ -12,16 +12,17 @@ def get_all_employees():
         db_cursor = conn.cursor()
 
         # Write the SQL query to get the information you want
-        db_cursor.execute(
-            """
-        SELECT
-            a.id,
-            a.name,
-            a.address,
-            a.location_id
-        FROM employee a
-        """
-        )
+        db_cursor.execute("""
+            SELECT
+                e.id,
+                e.name,
+                e.address,
+                e.location_id,
+                l.name location_name
+            FROM employee e
+            JOIN Location l
+            ON l.id = e.location_id
+            """)
 
         # Initialize an empty list to hold all employee representations
         employees = []
@@ -31,19 +32,22 @@ def get_all_employees():
 
         # Iterate list of data returned from database
         for row in dataset:
-
             # Create an employee instance from the current row.
             # Note that the database fields are specified in
             # exact order of the parameters defined in the
             # employee class above.
-            employee = Employee(
-                row["id"], row["name"], row["address"], row["location_id"]
-            )
+            employee = Employee(row["id"], row["name"],
+                                row["address"], row["location_id"])
+
+            location = Location(row["id"], row["location_name"],
+                                row["address"])
+
+            employee.location = location.__dict__
 
             employees.append(employee.__dict__)
 
-    # Use `json` package to properly serialize list as JSON
-    return json.dumps(employees)
+        # Use `json` package to properly serialize list as JSON
+        return json.dumps(employees)
 
 
 def get_single_employee(id):
@@ -82,7 +86,8 @@ def get_employee_by_location_id(location_id):
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
-        db_cursor.execute("""
+        db_cursor.execute(
+            """
             SELECT
                 e.id,
                 e.name,
@@ -90,13 +95,17 @@ def get_employee_by_location_id(location_id):
                 e.location_id
             FROM employee e
             WHERE e.location_id = ?
-            """, (location_id,))
+            """,
+            (location_id,),
+        )
 
         data = db_cursor.fetchall()
 
         for row in data:
 
-            employee = Employee(row["id"], row["name"], row["address"], row["location_id"])
+            employee = Employee(
+                row["id"], row["name"], row["address"], row["location_id"]
+            )
 
         return json.dumps(employee.__dict__)
 
