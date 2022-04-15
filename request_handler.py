@@ -1,17 +1,10 @@
 from curses import raw
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import imp
 import json
 from views.animal_requests import get_all_animals, get_animal_by_status, get_single_animal, get_animal_by_location_id, delete_animal, update_animal, create_animal
 from views.location_requests import get_all_locations, get_single_location # create_location, delete_location, update_location
 from views.employee_requests import get_all_employees, get_single_employee, get_employee_by_location_id # create_employee, delete_employee, update_employee
 from views.customers_requests import get_all_customers, get_single_customer, get_customers_by_email, get_customers_by_name # create_customer, delete_customer, update_customer
-
-
-
-# WHAT IS MY IMP IMPORT?
-
-
 
 # Here's a class. It inherits from another class.
 # For now, think of a class as a container for functions that
@@ -24,6 +17,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     
     
     def parse_url(self, path):
+        """Parses the URL into separate strings and returns them in a tuple to use in the relevant method"""
         # Just like splitting a string in JavaScript. If the
         # path is "/animals/1", the resulting list will
         # have "" at index 0, "animals" at index 1, and "1"
@@ -40,6 +34,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             pair = param.split("=")  # [ 'email', 'jenna@solis.com' ]
             key = pair[0]  # 'email'
             value = pair[1]  # 'jenna@solis.com'
+            
             
             try:
                 value = int(value)
@@ -60,7 +55,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             # This is the new parseInt()
                 id = int(path_params[2])
                 
-                # WHAT IS GOING ON BELOW?
+                # WHAT IS GOING ON BELOW? // I THINK IT IS HANDLING THE ERRORS THAT WILL COME UP SINCE THE URL IS EITHER 3 OR 2 PARAMETERS
+                            # WITHOUT THESE LINES OF CODE THE ERRORS WOULD STOP PYTHON FROM MOVING ON
                 
             except IndexError:
                 pass  # No route parameter exists: /animals
@@ -80,8 +76,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         Args:
             status (number): the status code to return to the front end
         """
-        
-        # ARE THESE PREDEFINED METHODS(?)? - GETS METHODS FROM INHERITED CLASS
         
         self.send_response(status)
         self.send_header("Content-type", "application/json")
@@ -103,13 +97,14 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It handles any GET request.
    
     def do_GET(self):
-        # HOW IS THE METHODS _SET_HEADERS_ GETTING USED ON THIS LINE? - initial header code value
+        # sets headers and passes a temporary response code upon initialization
+        
         self._set_headers(200)
 
-        response = {}       # Default response - initial response value
+        response = {}       # Setting initial response outside the if/else statement for scope reasons
 
         # Parse URL and store entire tuple in a variable
-        parsed = self.parse_url(self.path)       # DOES PATH COME FROM POSTMAN? - yes
+        parsed = self.parse_url(self.path)       # DOES PATH COME FROM POSTMAN? - it comes from whoever the client is
 
         # Response from parse_url() is a tuple with 2
         # items in it, which means the request was for
@@ -159,18 +154,25 @@ class HandleRequests(BaseHTTPRequestHandler):
             elif key == "location_id" and resource == "employees":
                 response = f"{get_employee_by_location_id(value)}"
 
-        self.wfile.write(response.encode())     #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES
+        self.wfile.write(response.encode())     #WHAT DOES THIS DO?? RESPONSE === LIST OF DICTIONARIES // DOES THIS PASS THE 
+                            # DUNDER DICTED RESULTS OF THE FUNCTION STATEMENT TO THE WRITE METHOD ON THE WFILE PROPERTY?
+                            # WHEN DOES THE SELF GET SENT BACK TO CLIENT? -- methods return something everytime they are called
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any POST request.
-    
     def do_POST(self):
         self._set_headers(201)
-        content_len = int(self.headers.get('content-length', 0)) # WHAT DOES THIS DO?
-        post_body = self.rfile.read(content_len) # WHAT DOES THIS DO?? - READ METHOD ON RFILE PROPETY OF INHERITED CLASS
-
+        
+        # .get() method acts like a try-except by passing second argument as default value if initial value is blank
+        
+        content_len = int(self.headers.get('content-length', 0)) # WHAT DOES THIS DO? checks all the headers on post and gets the data size
+        
+        post_body = self.rfile.read(content_len) # WHAT DOES THIS DO?? - READ METHOD ON RFILE PROPERTY OF INHERITED CLASS RECEIVING 
+                            # THE NUMBER OF CONTENT-LENGTH HEADERS -- read is a method that will continue to run unless it is told when to stop
+                                # converts data from machine representation of data to some other data type that can python can use
+                                
         # Convert JSON string to a Python dictionary
-        post_body = json.loads(post_body)
+        post_body = json.loads(post_body)   # IS POST_BODY A JSON STRING FROM THE CLIENT? -- converts to python dictionary this is opposite side of do_get method's translations...
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
@@ -188,7 +190,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_location(post_body)
             
             # Encode the new animal and send in response
-        self.wfile.write(f"{response}".encode())
+        self.wfile.write(f"{response}".encode()) # COULD THIS RETURN TRUE OR FALSE AND A RELATED RESPONSE CODE INSTEAD OF AN OBJECT?
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any PUT request.
@@ -203,6 +205,9 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         success = False
 
+        # WHY USING A VARIABLE SUCCESS TO CONDITIONALLY CONTROL SETTING HEADERS? -- BECAUSE SOMETIMES THE TARGETED ROW DOESN'T EXIST AND 
+            # YOU NEED TO SEND BACK AN ERROR CODE INSTEAD OF A SUCCESS CODE
+
         if resource == "animals":
             success = update_animal(id, post_body)
         # rest of the elif's
@@ -212,7 +217,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         else:
             self._set_headers(404)
 
-        self.wfile.write("".encode())
+        self.wfile.write("".encode()) # WHAT IS GETTING ENCODED? -- empty response body but headers and other info is still returned by method
 
     def do_DELETE(self):
         # Set a 204 response code
@@ -232,7 +237,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             delete_location(id)
 
         # Encode the new animal and send in response
-        self.wfile.write("".encode())
+        self.wfile.write("".encode()) # DO I NEED THIS CODE FOR A DELETE?
 
 
 # This function is not inside the class. It is the starting

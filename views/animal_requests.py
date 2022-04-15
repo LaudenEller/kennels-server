@@ -34,8 +34,8 @@ def get_all_animals():
         animals = []
 
         # Convert rows of data into a Python list
-        dataset = db_cursor.fetchall()                # DOES THIS DB_CURSOR ALREADY INCLUDE THE .EXECUTE() METHOD SO THAT 
-                                                        # WE ARE PERFORMING .EXECUTE FOR EACH FETCH?
+        dataset = db_cursor.fetchall()                # db_cursor has value of Sql query from .execute(), converts results to data form set by line 12
+                                                            # .fetchall() sets dataset to iterable python datatype
 
         for row in dataset:
             # Create an animal instance from the current row
