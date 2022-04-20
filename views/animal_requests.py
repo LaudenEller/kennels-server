@@ -54,6 +54,8 @@ def get_all_animals():
 
             # Add the dictionary representation of the animal to the list
             animals.append(animal.__dict__)
+            
+            # Compiling dictionaries as properties on dictionaries is called data composition....
 
         # Use `json` package to properly serialize list as JSON
         return json.dumps(animals)
@@ -164,7 +166,7 @@ def update_animal(id, new_animal):
                 status = ?,
                 location_id = ?,
                 customer_id = ?
-        WHERE id = ?
+            WHERE id = ?
         """, (new_animal['name'], new_animal['breed'],
               new_animal['status'], new_animal['locationId'],
               new_animal['customerId'], id, ))

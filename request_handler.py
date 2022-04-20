@@ -1,5 +1,5 @@
-from curses import raw
-from http.server import BaseHTTPRequestHandler, HTTPServer
+# from curses import raw
+from http.server import BaseHTTPRequestHandler, HTTPServer # Imported classes from python library that handle the basic http communications, we add more specificity with the HandleRequests Class
 import json
 from views.animal_requests import get_all_animals, get_animal_by_status, get_single_animal, get_animal_by_location_id, delete_animal, update_animal, create_animal
 from views.location_requests import get_all_locations, get_single_location # create_location, delete_location, update_location
@@ -190,7 +190,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_location(post_body)
             
             # Encode the new animal and send in response
-        self.wfile.write(f"{response}".encode()) # COULD THIS RETURN TRUE OR FALSE AND A RELATED RESPONSE CODE INSTEAD OF AN OBJECT?
+        self.wfile.write(f"{response}".encode()) # COULD THIS RETURN TRUE OR FALSE AND A RELATED RESPONSE CODE 
+                                                    # INSTEAD OF AN OBJECT? - yes, can send any kind of response back
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any PUT request.
@@ -239,16 +240,17 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Encode the new animal and send in response
         self.wfile.write("".encode()) # DO I NEED THIS CODE FOR A DELETE?
 
-
 # This function is not inside the class. It is the starting
 # point of this application.
 def main():
     """Starts the server on port 8088 using the HandleRequests class"""
-    host = ""
+    host = "" # default is localhost
     port = 8088
+    # HTTPServer accepts two parameters: a tuple and a class
+    # HTTPServer is a function (class?) that "listens" for incoming requests and send a response
+    # HandleRequests is the custom part that is coded in Python above^ All the methods etc
     HTTPServer((host, port), HandleRequests).serve_forever() # This is a new class that is getting HandleRequests class passed as one of the arguments
 
-
 # Does this invokes the main function because __name__ is __main__ somewhere else in my code?
-if __name__ == "__main__":
+if __name__ == "__main__": # this is a function that checks to see if we are running this file directly in the app or importing from somewhere else (it is a Python thing that will be in all apps)
     main()
